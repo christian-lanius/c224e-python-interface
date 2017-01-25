@@ -1,5 +1,5 @@
 import admin
-# import user
+import user
 import signal
 import sys
 if __name__ == "__main__":
@@ -12,13 +12,14 @@ if __name__ == "__main__":
     if admin.loggedIn:
         signal.signal(signal.SIGINT, signal_handler)
         try:
+            user.getLimits(browser)
             #Let's create some test accounts
             admin._getUserByName('testUser', browser)
-#             admin._getUserByName('131', browser)
-#             admin.createUser('testUser', 'test123', browser)
-#             admin.createUser('testUser2', 'test123', browser)
-#             admin.createUser('testUser3', 'test123', browser)
-#             admin.createUser('testUser3', 'test123', browser)
-#             admin.setLimits('bla', bw = 100, color = 50, 'inc', browser)
+            admin._getUserByName('131', browser)
+            admin.createUser('testUser', 'test123', browser)
+            admin.createUser('testUser2', 'test123', browser)
+            admin.createUser('testUser3', 'test123', browser)
+            admin.createUser('testUser3', 'test123', browser)
+            admin.setLimits('testUser', 100, 50, 'inc', browser)
         finally:
-            admin.logout(browser)
+            user.logout(browser)
