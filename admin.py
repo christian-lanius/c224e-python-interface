@@ -22,11 +22,11 @@ class C224eAdmin:
 
         self.loggedIn = False
 
-    def login(self, password, ipaddress):
+    def login(self, password, host):
         if(self.loggedIn):
             self.logout()
 
-        self.address = ipaddress
+        self.address = host
         self.br = RoboBrowser(history=True)
         self.br.allow_redirects = True
         self.br.session.cookies['ver_expires'] = 'Thu, 11 Jan 2099 17:53:10 GMT'
