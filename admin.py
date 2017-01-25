@@ -3,16 +3,19 @@ from bs4 import BeautifulSoup
 import time
 token = ''
 loggedIn = False
+address = ""
 def logout(br):
     global loggedIn
     if loggedIn:
         data = {'func' : 'PSL_ACO_LGO'}
-        br.open('http://137.226.183.224/wcd/a_user.cgi', method='post', data = data)
+        br.open('http://'+address+'/wcd/a_user.cgi', method='post', data = data)
         print('Logged out as administrator')
         
         loggedIn = False
     
-def login(password):
+def login(password, ipaddress):
+    global address
+    address = ipaddress
     br = RoboBrowser(history=True)
     br.allow_redirects = True
     br.session.cookies['ver_expires'] = 'Thu, 11 Jan 2099 17:53:10 GMT'
@@ -32,7 +35,7 @@ def login(password):
             'R_ADM' : 'AdminAdmin',
             'password' : password
     }
-    br.open('http://137.226.183.224/wcd/login.cgi', method='post', data = data)
+    br.open('http://'+address+'/wcd/login.cgi', method='post', data = data)
     global loggedIn
 #     print(len(br.response.content.decode('UTF-8')))
     soup = BeautifulSoup(br.response.content.decode('UTF-8'), 'lxml')
@@ -55,16 +58,13 @@ def login(password):
     
     loggedIn = True
     print('Logged in as administrator')
-    _updateToken(br, 'http://137.226.183.224/wcd/a_system_counter.xml')
+    _updateToken(br, 'http://'+address+'/wcd/a_system_counter.xml')
     return br
 
 def createUser(username, password, br):
     if loggedIn:
         print('Creating user {}'.format(username))
-    #     br.open('http://137.226.183.224/wcd/a_system_counter.xml')
-    # #     print(br.parsed.prettify())
-    #     token = br.find('token').get_text()
-        _updateToken(br, 'http://137.226.183.224/wcd/a_system_counter.xml')
+        _updateToken(br, 'http://'+address+'/wcd/a_system_counter.xml')
     #     print(token)
         data = {'func' : 'PSL_AA_USR_USR',
                 'h_token' : token,
@@ -91,7 +91,7 @@ def createUser(username, password, br):
                 'AA_USR_C_RFL' : 'on',
                 'AA_USR_S_RPL' : '0'
         }
-        br.open('http://137.226.183.224/wcd/a_user.cgi', method='post', data = data)
+        br.open('http://'+address+'/wcd/a_user.cgi', method='post', data = data)
         soup = BeautifulSoup(br.response.content.decode('UTF-8'), 'lxml')
     
         if(soup.find('item')):
@@ -102,7 +102,6 @@ def createUser(username, password, br):
 def deleteUser(username, br):
     if loggedIn:
         print('Deleting user {}'.format(username))
-#         _updateToken(br, 'http://137.226.183.224/wcd/a_authentication_user.xml')
         user = _getUserByName(username, br);
         if not user:
             return
@@ -112,14 +111,13 @@ def deleteUser(username, br):
                 'AA_USR_H_UNA' : user['username'],
                 'AA_USR_H_SNM' : ''
         }
-#         _updateToken(br, 'http://137.226.183.224/wcd/a_authentication_user.xml')
-        br.open('http://137.226.183.224/wcd/a_user.cgi', method='post', data = data)
+        br.open('http://'+address+'/wcd/a_user.cgi', method='post', data = data)
         soup = BeautifulSoup(br.response.content.decode('UTF-8'), 'lxml')
         retCode = soup.find('item')
         if  not(retCode and retCode.contents[0] == 'Ok_1'):
             print('Could not delete user {}'.format(username))
         
-        br.open('http://137.226.183.224/wcd/a_authentication_user.xml')
+        br.open('http://'+address+'/wcd/a_authentication_user.xml')
         
 def changePassword(username, newPassword, br):
     if loggedIn:
@@ -127,7 +125,7 @@ def changePassword(username, newPassword, br):
         user = _getUserByName(username, br);
         if not user:
             return
-        _updateToken(br, 'http://137.226.183.224/wcd/a_system_counter.xml')
+        _updateToken(br, 'http://'+address+'/wcd/a_system_counter.xml')
         data = {'func' : 'PSL_AA_USR_USR',
                 'h_token' : token,
                 'AA_USR_H_NUM' : user['userID'],
@@ -154,7 +152,7 @@ def changePassword(username, newPassword, br):
                 'AA_USR_C_RFL' : 'on',
                 'AA_USR_S_RPL' : '0'
         }
-        br.open('http://137.226.183.224/wcd/a_user.cgi', method='post', data = data)
+        br.open('http://'+address+'/wcd/a_user.cgi', method='post', data = data)
         #TODO: Verify it worked
 
 def _updateToken(br, link):
@@ -174,18 +172,18 @@ def _updateToken(br, link):
 def _getUserByName(username, br):
     if loggedIn:
     # wir können bis zu 1000 user haben, immer in 50 user/seite aufgeteilt.
-        _updateToken(br, 'http://137.226.183.224/wcd/a_authentication_user.xml')
+        _updateToken(br, 'http://'+address+'/wcd/a_authentication_user.xml')
         for i in range(0,19):
             data = {'func' : 'PSL_AA_USR_PAG',
             'h_token' : token,
             'H_SRT' : str(1+i*50),
             'H_END' : str(50*(i+1))
             }
-            br.open('http://137.226.183.224/wcd/a_user.cgi', method='post', data = data)
+            br.open('http://'+address+'/wcd/a_user.cgi', method='post', data = data)
             #get new token
-            _updateToken(br,'http://137.226.183.224/wcd/a_authentication_user.xml')
+            _updateToken(br,'http://'+address+'/wcd/a_authentication_user.xml')
             
-            br.open('http://137.226.183.224/wcd/a_user.xml')
+            br.open('http://'+address+'/wcd/a_user.xml')
             soup = BeautifulSoup(br.response.content.decode('UTF-8'), 'lxml')
             
             userRaw = soup.find_all('authusersetting')
@@ -212,7 +210,7 @@ def setLimits(username, bw, color, mode, br):
         user = _getUserByName(username, br);
         if not user:
             return
-        _updateToken(br, 'http://137.226.183.224/wcd/a_system_counter.xml')
+        _updateToken(br, 'http://'+address+'/wcd/a_system_counter.xml')
         if(mode == 'inc'):
             user['numColorAllowed'] = str(int(user['numColorAllowed']) + color)
             user['numBwAllowed'] = str(int(user['numBwAllowed']) + bw)
@@ -248,5 +246,5 @@ def setLimits(username, bw, color, mode, br):
                 'AA_USR_C_RFL' : 'on',
                 'AA_USR_S_RPL' : '0'
         }
-        br.open('http://137.226.183.224/wcd/a_user.cgi', method='post', data = data)    
+        br.open('http://'+address+'/wcd/a_user.cgi', method='post', data = data)    
         #TODO: Verify everything worked

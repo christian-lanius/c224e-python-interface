@@ -2,9 +2,10 @@ from robobrowser import RoboBrowser
 import time
 
 loggedIn = False
+address = ""
 def changePassword(user, oldPw, newPw, br):
     if(loggedIn):
-        br.open('http://137.226.183.224/wcd/system_password.xml')
+        br.open('http://'+address+'/wcd/system_password.xml')
         token = br.find('token').get_text()
         print(token)
         data = { 'func' : 'PSL_S_UPC_USR',
@@ -20,14 +21,16 @@ def changePassword(user, oldPw, newPw, br):
     #     br.session.cookies['param'] = ''
     #     br.session.cookies['access'] = ''
     #     br.session.cookies['usr'] = 'S_UPC'
-        br.open('http://137.226.183.224/wcd/user.cgi', method='post', data = data)
-        br.open('http://137.226.183.224/wcd/preferences.xml')
-        br.open('http://137.226.183.224/wcd/top.html')
+        br.open('http://'+address+'/wcd/user.cgi', method='post', data = data)
+        br.open('http://'+address+'/wcd/preferences.xml')
+        br.open('http://'+address+'/wcd/top.html')
     
-def login(user, password):
+def login(user, password, ipaddress):
+    global address
+    address = ipaddress
     br = RoboBrowser(history=True)
     br.allow_redirects = True
-    br.open('http://137.226.183.224/wcd/top.html')
+    br.open('http://'+address+'/wcd/top.html')
     
     global loggedIn
     form = br.get_forms()
@@ -36,26 +39,26 @@ def login(user, password):
     form['password'] = password
     br.submit_form(form)
     
-    br.open('http://137.226.183.224/wcd/proglog')
+    br.open('http://'+address+'/wcd/proglog')
     while 1:
-        br.open('http://137.226.183.224/wcd/proglog')
+        br.open('http://'+address+'/wcd/proglog')
         if(br.parsed.find_all('iframe')):
             break
         if(br.parsed.find('item').get_text() == 'AuthIllegalAcount'):
             print('Can not login as {}: Password wrong or user does not exist'.format(user))
             loggedIn = False
             return
-        br.open('http://137.226.183.224/wcd/preference.xml')
+        br.open('http://'+address+'/wcd/preference.xml')
         time.sleep(3)
     print('Logged in')
-    br.open("http://137.226.183.224/wcd/system_device.xml");
+    br.open('http://'+address+'/wcd/system_device.xml');
     
     loggedIn = True
     return br
 
 def getLimits(br):
     if loggedIn:
-        br.open('http://137.226.183.224/wcd/system_authset.xml')
+        br.open('http://'+address+'/wcd/system_authset.xml')
         
         bwLimit = br.find('bwprint').limit.get_text()
         print('Black and White Limit: {}'.format(bwLimit))
@@ -83,7 +86,7 @@ def logout(br):
     global loggedIn
     if loggedIn:
         data = {'func' : 'PSL_ACO_LGO'}
-        br.open('http://137.226.183.224/wcd/user.cgi', method='post', data = data)
+        br.open('http://'+address+'/wcd/user.cgi', method='post', data = data)
         print('Logged out as user')
         
         loggedIn = False

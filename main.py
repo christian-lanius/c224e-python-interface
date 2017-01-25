@@ -4,7 +4,8 @@ import signal
 import sys
 if __name__ == "__main__":
     #Create session
-    browser = admin.login('SECRETPW')
+#     browser = user.login('131', 'mypw', "137.226.183.224")
+    browser = admin.login('adminpw', '137.226.183.224')
     #Do some magic to make sure we always log out, otherwise we might block the printer
     def signal_handler(signal, frame):
         admin.logout(browser)
@@ -12,7 +13,7 @@ if __name__ == "__main__":
     if admin.loggedIn:
         signal.signal(signal.SIGINT, signal_handler)
         try:
-            user.getLimits(browser)
+#             user.getLimits(browser)
             #Let's create some test accounts
             admin._getUserByName('testUser', browser)
             admin._getUserByName('131', browser)
@@ -22,4 +23,4 @@ if __name__ == "__main__":
             admin.createUser('testUser3', 'test123', browser)
             admin.setLimits('testUser', 100, 50, 'inc', browser)
         finally:
-            user.logout(browser)
+            admin.logout(browser)
