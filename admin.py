@@ -261,3 +261,6 @@ class C224eAdmin:
         }
         self.br.open('http://'+self.address+'/wcd/a_user.cgi', method='post', data = data)
         #TODO: Verify everything worked
+
+    def __del__(self):
+        self.logout()
