@@ -22,9 +22,7 @@ if __name__ == "__main__":
 
         #Let's create some test accounts
         admin.createUser('testUser', 'test123')
-        admin.getUserByName('testUser')
         admin.setLimits('testUser', 111, 222, 'abs')
-        admin.getUserByName('testUser')
         admin.setLimits('testUser', 9, 8, 'inc')
         admin.getUserByName('testUser')
 
