@@ -1,26 +1,27 @@
-import admin
+from admin import C224eAdmin
 import user
 import signal
 import sys
 if __name__ == "__main__":
-    #Create session
-#     browser = user.login('131', 'mypw', "137.226.183.224")
-    browser = admin.login('adminpw', '137.226.183.224')
     #Do some magic to make sure we always log out, otherwise we might block the printer
     def signal_handler(signal, frame):
-        admin.logout(browser)
+        admin.logout()
         sys.exit(0)
-    if admin.loggedIn:
-        signal.signal(signal.SIGINT, signal_handler)
-        try:
-#             user.getLimits(browser)
-            #Let's create some test accounts
-            admin._getUserByName('testUser', browser)
-            admin._getUserByName('131', browser)
-            admin.createUser('testUser', 'test123', browser)
-            admin.createUser('testUser2', 'test123', browser)
-            admin.createUser('testUser3', 'test123', browser)
-            admin.createUser('testUser3', 'test123', browser)
-            admin.setLimits('testUser', 100, 50, 'inc', browser)
-        finally:
-            admin.logout(browser)
+
+    signal.signal(signal.SIGINT, signal_handler)
+    try:
+        # Create administrator session
+        admin = C224eAdmin()
+
+        admin.login('password', 'printer.hostname')
+
+        #Let's create some test accounts
+        admin.createUser('testUser', 'test123')
+        admin.getUserByName('testUser')
+        admin.setLimits('testUser', 111, 222, 'abs')
+        admin.getUserByName('testUser')
+        admin.setLimits('testUser', 9, 8, 'inc')
+        admin.getUserByName('testUser')
+
+    finally:
+        admin.logout()
