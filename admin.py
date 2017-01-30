@@ -3,7 +3,6 @@
 
 from robobrowser import RoboBrowser
 from bs4 import BeautifulSoup
-import time
 
 
 class C224eAdmin:
@@ -66,9 +65,9 @@ class C224eAdmin:
                 self.loggedIn = False
                 return False
 
-        self.loggedIn = True
         print('Logged in as administrator')
         self.updateToken('http://' + self.address + '/wcd/a_system_counter.xml')
+        self.loggedIn = True
         return True
 
     def createUser(self, username, password):
@@ -166,7 +165,9 @@ class C224eAdmin:
                 'AA_USR_S_RPL' : '0'
         }
         self.br.open('http://'+self.address+'/wcd/a_user.cgi', method='post', data = data)
-        #TODO: Verify it worked
+        soup = BeautifulSoup(self.br.response.content.decode('UTF-8'), 'lxml')
+        if(soup.find('item').get_text() != "Ok_1"):
+            print('Changing password failed, Errorcode:{}'.format(soup.find('item').get_text()))
 
     def updateToken(self, link):
         if not self.loggedIn:
@@ -260,7 +261,9 @@ class C224eAdmin:
                 'AA_USR_S_RPL' : '0'
         }
         self.br.open('http://'+self.address+'/wcd/a_user.cgi', method='post', data = data)
-        #TODO: Verify everything worked
+        soup = BeautifulSoup(self.br.response.content.decode('UTF-8'), 'lxml')
+        if(soup.find('item').get_text() != "Ok_1"):
+            print('Setting limits failed, Errorcode:{}'.format(soup.find('item').get_text()))
 
     def __del__(self):
         self.logout()

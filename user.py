@@ -24,15 +24,9 @@ class C224eUser:
                 'S_UPC_P_NO' : newPw,
 
         }
-    #     self.br.session.cookies['ver_expires'] = 'Thu, 11 Jan 2018 17:53:10 GMT'
-    #     self.br.session.cookies['adm'] = 'AA_USR'
-    #     self.br.session.cookies['uatype'] = 'NN'
-    #     self.br.session.cookies['param'] = ''
-    #     self.br.session.cookies['access'] = ''
-    #     self.br.session.cookies['usr'] = 'S_UPC'
         self.br.open('http://'+self.address+'/wcd/user.cgi', method='post', data = data)
-        self.br.open('http://'+self.address+'/wcd/preferences.xml')
-        self.br.open('http://'+self.address+'/wcd/top.html')
+        if( not (self.br.parsed.find('item').get_text() == 'Ok_1')):
+                print('Error occured changing password: {}'.format(self.br.parsed.find('item').get_text()))
 
     def login(self, user, password, host):
         self.address = host

@@ -18,17 +18,19 @@ if __name__ == "__main__":
 
     signal.signal(signal.SIGINT, signal_handler)
     try:
-        admin.login('password', 'printer.hostname')
+        admin.login('passwort', 'drucker')
 
         #Let's create some test accounts
         admin.createUser('testUser', 'test123')
         admin.setLimits('testUser', 111, 222, 'abs')
         admin.setLimits('testUser', 9, 8, 'inc')
-        admin.getUserByName('testUser')
-
+        admin.changePassword('testUser', 'newPassword')
+        admin.logout()
+        
         #And test some user stuff
-        user.login('user', 'password', 'printer.hostname')
+        user.login('testUser', 'password', 'drucker')
         user.getLimits()
+        user.changePassword('password', 'newPassword')
 
     finally:
         admin.logout()
