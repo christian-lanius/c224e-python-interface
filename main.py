@@ -10,6 +10,7 @@ if __name__ == "__main__":
     admin = C224eAdmin()
     user = C224eUser()
 
+
     #Do some magic to make sure we always log out, otherwise we might block the printer
     def signal_handler(signal, frame):
         admin.logout()
@@ -18,8 +19,8 @@ if __name__ == "__main__":
 
     signal.signal(signal.SIGINT, signal_handler)
     try:
-        admin.login('passwort', 'drucker')
-
+        admin.login('passwort', 'drucker.saw.rwth-aachen.de')
+ 
         #Let's create some test accounts
         admin.createUser('testUser', 'test123')
         admin.setLimits('testUser', 111, 222, 'abs')
@@ -28,9 +29,9 @@ if __name__ == "__main__":
         admin.logout()
         
         #And test some user stuff
-        user.login('testUser', 'password', 'drucker')
+        user.login('testUser', 'newPassword', 'drucker.saw.rwth-aachen.de')
         user.getLimits()
-        user.changePassword('password', 'newPassword')
+        user.changePassword('newPassword', 'password')
 
     finally:
         admin.logout()

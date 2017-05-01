@@ -3,7 +3,8 @@
 
 from robobrowser import RoboBrowser
 from bs4 import BeautifulSoup
-
+import requests
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 class C224eAdmin:
     def __init__(self):
@@ -11,12 +12,13 @@ class C224eAdmin:
         self.loggedIn = False
         self.address = ""
         self.br = ""
+        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
     def logout(self):
         if not self.loggedIn:
             return
         data = {'func' : 'PSL_ACO_LGO'}
-        self.br.open('http://'+self.address+'/wcd/a_user.cgi', method='post', data = data)
+        self.br.open('https://'+self.address+'/wcd/a_user.cgi', method='post', data = data, verify=False)
         print('Logged out as administrator')
 
         self.loggedIn = False
@@ -45,7 +47,7 @@ class C224eAdmin:
                 'R_ADM' : 'AdminAdmin',
                 'password' : password
         }
-        self.br.open('http://'+self.address+'/wcd/login.cgi', method='post', data = data)
+        self.br.open('https://'+self.address+'/wcd/login.cgi', method='post', data = data, verify=False)
         #print(len(self.br.response.content.decode('UTF-8')))
         soup = BeautifulSoup(self.br.response.content.decode('UTF-8'), 'lxml')
         #print(soup.prettify)
@@ -62,11 +64,12 @@ class C224eAdmin:
                 return False
             if(message[0] == 'AdminAnotherLoginError'):
                 print('Can not login as admin: Another admin is already logged in')
+                print(soup.prettify)
                 self.loggedIn = False
                 return False
 
         print('Logged in as administrator')
-        self.updateToken('http://' + self.address + '/wcd/a_system_counter.xml')
+        self.updateToken('https://' + self.address + '/wcd/a_system_counter.xml')
         self.loggedIn = True
         return True
 
@@ -74,7 +77,7 @@ class C224eAdmin:
         if not self.loggedIn:
             return
         print('Creating user {}'.format(username))
-        self.updateToken('http://' + self.address + '/wcd/a_system_counter.xml')
+        self.updateToken('https://' + self.address + '/wcd/a_system_counter.xml')
         #print(self.token)
         data = {'func' : 'PSL_AA_USR_USR',
                 'h_token' : self.token,
@@ -101,7 +104,7 @@ class C224eAdmin:
                 'AA_USR_C_RFL' : 'on',
                 'AA_USR_S_RPL' : '0'
         }
-        self.br.open('http://'+self.address+'/wcd/a_user.cgi', method='post', data = data)
+        self.br.open('https://'+self.address+'/wcd/a_user.cgi', method='post', data = data, verify=False)
         soup = BeautifulSoup(self.br.response.content.decode('UTF-8'), 'lxml')
 
         if(soup.find('item')):
@@ -122,13 +125,13 @@ class C224eAdmin:
                 'AA_USR_H_UNA' : user['username'],
                 'AA_USR_H_SNM' : ''
         }
-        self.br.open('http://'+self.address+'/wcd/a_user.cgi', method='post', data = data)
+        self.br.open('https://'+self.address+'/wcd/a_user.cgi', method='post', data = data , verify=False)
         soup = BeautifulSoup(self.br.response.content.decode('UTF-8'), 'lxml')
         retCode = soup.find('item')
         if not(retCode and retCode.contents[0] == 'Ok_1'):
             print('Could not delete user {}'.format(username))
 
-        self.br.open('http://'+self.address+'/wcd/a_authentication_user.xml')
+        self.br.open('https://'+self.address+'/wcd/a_authentication_user.xml', verify=False)
 
     def changePassword(self, username, newPassword):
         if not self.loggedIn:
@@ -137,7 +140,7 @@ class C224eAdmin:
         user = self.getUserByName(username);
         if not user:
             return
-        self.updateToken('http://' + self.address + '/wcd/a_system_counter.xml')
+        self.updateToken('https://' + self.address + '/wcd/a_system_counter.xml')
         data = {'func' : 'PSL_AA_USR_USR',
                 'h_token' : self.token,
                 'AA_USR_H_NUM' : user['userID'],
@@ -164,7 +167,7 @@ class C224eAdmin:
                 'AA_USR_C_RFL' : 'on',
                 'AA_USR_S_RPL' : '0'
         }
-        self.br.open('http://'+self.address+'/wcd/a_user.cgi', method='post', data = data)
+        self.br.open('https://'+self.address+'/wcd/a_user.cgi', method='post', data = data, verify=False)
         soup = BeautifulSoup(self.br.response.content.decode('UTF-8'), 'lxml')
         if(soup.find('item').get_text() != "Ok_1"):
             print('Changing password failed, Errorcode:{}'.format(soup.find('item').get_text()))
@@ -172,7 +175,7 @@ class C224eAdmin:
     def updateToken(self, link):
         if not self.loggedIn:
             return
-        self.br.open(link)
+        self.br.open(link, verify=False)
         soup = BeautifulSoup(self.br.response.content.decode('UTF-8'), 'lxml')
         if(soup.find('token')):
             self.token = soup.find('token').contents[0]
@@ -186,18 +189,18 @@ class C224eAdmin:
         if not self.loggedIn:
             return
         # wir können bis zu 1000 user haben, immer in 50 user/seite aufgeteilt.
-        self.updateToken('http://' + self.address + '/wcd/a_authentication_user.xml')
+        self.updateToken('https://' + self.address + '/wcd/a_authentication_user.xml')
         for i in range(0,19):
             data = {'func' : 'PSL_AA_USR_PAG',
             'h_token' : self.token,
             'H_SRT' : str(1+i*50),
             'H_END' : str(50*(i+1))
             }
-            self.br.open('http://'+self.address+'/wcd/a_user.cgi', method='post', data = data)
+            self.br.open('https://'+self.address+'/wcd/a_user.cgi', method='post', data = data, verify=False)
             #get new token
-            self.updateToken('http://' + self.address + '/wcd/a_authentication_user.xml')
+            self.updateToken('https://' + self.address + '/wcd/a_authentication_user.xml')
 
-            self.br.open('http://'+self.address+'/wcd/a_user.xml')
+            self.br.open('https://'+self.address+'/wcd/a_user.xml', verify=False)
             soup = BeautifulSoup(self.br.response.content.decode('UTF-8'), 'lxml')
 
             userRaw = soup.find_all('authusersetting')
@@ -224,7 +227,7 @@ class C224eAdmin:
         user = self.getUserByName(username)
         if not user:
             return
-        self.updateToken('http://' + self.address + '/wcd/a_system_counter.xml')
+        self.updateToken('https://' + self.address + '/wcd/a_system_counter.xml')
         if(mode == 'inc'):
             user['numColorAllowed'] = str(int(user['numColorAllowed']) + color)
             user['numBwAllowed'] = str(int(user['numBwAllowed']) + bw)
@@ -260,7 +263,7 @@ class C224eAdmin:
                 'AA_USR_C_RFL' : 'on',
                 'AA_USR_S_RPL' : '0'
         }
-        self.br.open('http://'+self.address+'/wcd/a_user.cgi', method='post', data = data)
+        self.br.open('https://'+self.address+'/wcd/a_user.cgi', method='post', data = data, verify=False)
         soup = BeautifulSoup(self.br.response.content.decode('UTF-8'), 'lxml')
         if(soup.find('item').get_text() != "Ok_1"):
             print('Setting limits failed, Errorcode:{}'.format(soup.find('item').get_text()))
